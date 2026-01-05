@@ -1,0 +1,275 @@
+================================================================================
+                    VENDOR MANAGEMENT SYSTEM (VMS)
+                    Local Vendor Marketplace Platform
+================================================================================
+
+PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+The Vendor Management System is a full-stack web application that connects 
+local vendors with customers in their vicinity. It functions as a hyperlocal 
+marketplace where vendors can list their products and customers can browse, 
+order, and have items delivered from nearby shops.
+
+================================================================================
+TECHNOLOGY STACK
+================================================================================
+
+FRONTEND:
+- React 18.2 with Vite 5.0
+- React Router v6 for navigation
+- Axios for API calls
+- CSS Modules for styling
+
+BACKEND:
+- Node.js with Express 4.18
+- SQLite database (using sql.js)
+- JWT for authentication
+- bcryptjs for password hashing
+
+================================================================================
+USER ROLES & FEATURES
+================================================================================
+
+1. CUSTOMER
+-----------
+   - Browse products and vendors
+   - Search products by category
+   - View vendor profiles and their products
+   - Add items to cart
+   - Place orders with shipping details
+   - View order history and order details
+   - Location-based vendor discovery
+
+2. VENDOR
+---------
+   - Dashboard with sales overview
+   - Manage products (add, edit, delete)
+   - View and manage incoming orders
+   - Update order status (pending → accepted → packed → delivered)
+   - Update shop profile information
+   - View sales statistics
+
+3. ADMIN
+--------
+   - System-wide dashboard
+   - Manage all vendors (verify/suspend)
+   - Manage product categories
+   - View all orders across the platform
+   - Manage user reviews
+
+================================================================================
+PROJECT STRUCTURE
+================================================================================
+
+VendorMgtSys/
+├── backend/
+│   ├── data/
+│   │   └── marketplace.db          # SQLite database file
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── db.js               # Database configuration
+│   │   ├── controllers/
+│   │   │   ├── admin.controller.js
+│   │   │   ├── auth.controller.js
+│   │   │   ├── customer.controller.js
+│   │   │   ├── public.controller.js
+│   │   │   └── vendor.controller.js
+│   │   ├── middleware/
+│   │   │   ├── auth.js             # JWT authentication
+│   │   │   ├── errorHandler.js
+│   │   │   └── validation.js
+│   │   ├── routes/
+│   │   │   ├── admin.routes.js
+│   │   │   ├── auth.routes.js
+│   │   │   ├── customer.routes.js
+│   │   │   ├── public.routes.js
+│   │   │   └── vendor.routes.js
+│   │   ├── utils/
+│   │   │   ├── distance.js         # Geolocation calculations
+│   │   │   ├── initDb.js
+│   │   │   └── jwt.js
+│   │   └── server.js               # Express app entry point
+│   └── package.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.jsx
+│   │   │   └── ProtectedRoute.jsx
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx     # Authentication state
+│   │   ├── pages/
+│   │   │   ├── admin/              # Admin dashboard pages
+│   │   │   ├── auth/               # Login & Register
+│   │   │   ├── customer/           # Cart, Orders, Checkout
+│   │   │   ├── public/             # Landing, Vendors, Products
+│   │   │   └── vendor/             # Vendor dashboard
+│   │   ├── services/
+│   │   │   └── api.js              # API service layer
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   └── package.json
+│
+└── database/
+    ├── schema.sqlite.sql           # Database schema
+    └── seed.sqlite.sql             # Sample data
+
+================================================================================
+INSTALLATION & SETUP
+================================================================================
+
+PREREQUISITES:
+- Node.js (v18 or higher)
+- npm or yarn
+
+STEP 1: Clone the repository
+-----------------------------
+git clone https://github.com/AdityaKumar2901/Project2_VMS.git
+cd Project2_VMS
+
+STEP 2: Install Backend Dependencies
+------------------------------------
+cd backend
+npm install
+
+STEP 3: Configure Environment (Optional)
+----------------------------------------
+Create a .env file in the backend folder:
+
+PORT=5000
+JWT_SECRET=your_secret_key_here
+NODE_ENV=development
+
+STEP 4: Install Frontend Dependencies
+-------------------------------------
+cd ../frontend
+npm install
+
+STEP 5: Start the Application
+-----------------------------
+Terminal 1 (Backend):
+cd backend
+npm run dev
+
+Terminal 2 (Frontend):
+cd frontend
+npm run dev
+
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:5000
+
+================================================================================
+DEFAULT TEST ACCOUNTS
+================================================================================
+
+The database comes pre-seeded with test accounts:
+
+CUSTOMER:
+  Email: john.customer@email.com
+  Password: password123
+
+VENDOR:
+  Email: fresh.farms@email.com
+  Password: password123
+
+ADMIN:
+  Email: admin@marketplace.com
+  Password: admin123
+
+================================================================================
+API ENDPOINTS
+================================================================================
+
+AUTHENTICATION:
+  POST /api/auth/register      - Register new user
+  POST /api/auth/login         - Login user
+  POST /api/auth/logout        - Logout user
+  GET  /api/auth/me            - Get current user
+
+PUBLIC:
+  GET  /api/public/products    - List all products
+  GET  /api/public/products/:id - Get product details
+  GET  /api/public/vendors     - List all vendors
+  GET  /api/public/vendors/:id - Get vendor details
+  GET  /api/public/categories  - List all categories
+
+CUSTOMER (Requires Authentication):
+  GET  /api/cart               - Get user's cart
+  POST /api/cart/items         - Add item to cart
+  DELETE /api/cart/items/:id   - Remove item from cart
+  GET  /api/orders             - Get user's orders
+  POST /api/orders             - Create new order
+  GET  /api/orders/:id         - Get order details
+
+VENDOR (Requires Vendor Role):
+  GET  /api/vendor/dashboard   - Get dashboard stats
+  GET  /api/vendor/products    - List vendor's products
+  POST /api/vendor/products    - Add new product
+  PUT  /api/vendor/products/:id - Update product
+  DELETE /api/vendor/products/:id - Delete product
+  GET  /api/vendor/orders      - Get vendor's orders
+  PUT  /api/vendor/orders/:id/status - Update order status
+
+ADMIN (Requires Admin Role):
+  GET  /api/admin/dashboard    - Get admin dashboard
+  GET  /api/admin/vendors      - List all vendors
+  PUT  /api/admin/vendors/:id  - Update vendor status
+  GET  /api/admin/orders       - List all orders
+  GET  /api/admin/categories   - List categories
+  POST /api/admin/categories   - Create category
+
+================================================================================
+KEY FEATURES
+================================================================================
+
+1. LOCATION-BASED DISCOVERY
+   - Vendors and products can be filtered by proximity
+   - Uses Haversine formula for distance calculation
+
+2. ROLE-BASED ACCESS CONTROL
+   - JWT tokens with role claims
+   - Protected routes on both frontend and backend
+
+3. ORDER MANAGEMENT
+   - Full order lifecycle: pending → accepted → packed → delivered
+   - Order history for customers
+   - Order management for vendors
+
+4. PRODUCT MANAGEMENT
+   - Categories for organization
+   - Stock quantity tracking
+   - Image URLs for product photos
+
+5. RESPONSIVE DESIGN
+   - Works on desktop and mobile devices
+   - CSS Modules for scoped styling
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+1. "Port already in use" error:
+   - Kill existing Node processes: 
+     Stop-Process -Name node -Force (Windows)
+     killall node (Mac/Linux)
+
+2. Database errors:
+   - Delete backend/data/marketplace.db and restart server
+   - The database will be recreated with seed data
+
+3. Authentication issues:
+   - Clear browser localStorage
+   - Re-login with test credentials
+
+================================================================================
+LICENSE
+================================================================================
+This project is created for educational purposes.
+
+================================================================================
+CONTACT
+================================================================================
+GitHub: https://github.com/AdityaKumar2901/Project2_VMS
+
+================================================================================
