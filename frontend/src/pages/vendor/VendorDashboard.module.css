@@ -306,6 +306,29 @@
   color: #991b1b;
 }
 
+.orderDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.customerName {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.customerName strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+.orderPrice {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #059669;
+}
+
 .orderItems {
   margin-bottom: 1rem;
 }

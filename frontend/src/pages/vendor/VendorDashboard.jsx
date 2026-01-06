@@ -83,9 +83,10 @@ const VendorDashboard = () => {
         
         // Calculate stats
         const pendingOrders = orderList.filter(o => o.status === 'pending').length;
+        // Revenue only from delivered orders
         const totalRevenue = orderList
-          .filter(o => o.status !== 'cancelled')
-          .reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
+          .filter(o => o.status === 'delivered')
+          .reduce((sum, o) => sum + parseFloat(o.total || o.total_amount || 0), 0);
 
         setStats({
           totalProducts: productsRes.data.data.products?.length || 0,
@@ -282,15 +283,18 @@ const VendorDashboard = () => {
               <div key={order.id} className={styles.orderCard}>
                 <div className={styles.orderHeader}>
                   <div>
-                    <span className={styles.orderId}>Order #{order.id}</span>
+                    <span className={styles.orderId}>Order #{order.order_number || order.id}</span>
                     <span className={styles.orderDate}> • {new Date(order.placed_at || order.created_at).toLocaleDateString()}</span>
                   </div>
                   <span className={`${styles.orderStatus} ${styles[order.status]}`}>
                     {order.status}
                   </span>
                 </div>
+                <div className={styles.orderDetails}>
+                  <span className={styles.customerName}>👤 {order.customer_name || 'Customer'}</span>
+                </div>
                 <div className={styles.orderFooter}>
-                  <span className={styles.orderTotal}>Total: ${parseFloat(order.total_amount).toFixed(2)}</span>
+                  <span className={styles.orderTotal}>Total: ${parseFloat(order.total || order.total_amount || 0).toFixed(2)}</span>
                 </div>
               </div>
             ))
