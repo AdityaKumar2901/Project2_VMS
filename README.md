@@ -121,15 +121,25 @@ Frontend runs on: http://localhost:5173
 
 ### Admin
 - Email: admin@marketplace.com
-- Password: Admin@123
+- Password: admin123
 
-### Vendor (Sample)
-- Email: spicemart@vendor.com
-- Password: Vendor@123
+### Vendor Accounts
+| Shop Name | Email | Password |
+|-----------|-------|----------|
+| Spice Mart | spicemart@vendor.com | password123 |
+| Fresh Harvest | freshharvest@vendor.com | password123 |
+| Tech Store Plus | techstore@vendor.com | password123 |
+| Home Essentials | homeessentials@vendor.com | password123 |
+| Fashion Hub | fashionhub@vendor.com | password123 |
 
-### Customer (Sample)
-- Email: john.customer@email.com
-- Password: Customer@123
+### Customer Accounts
+| Name | Email | Password |
+|------|-------|----------|
+| John Customer | john.customer@email.com | password123 |
+| Emily Brown | emily.brown@email.com | password123 |
+| David Lee | david.lee@email.com | password123 |
+| Lisa Wong | lisa.wong@email.com | password123 |
+| Mike Johnson | mike.johnson@email.com | password123 |
 
 ## API Documentation
 
