@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { vendorAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import styles from './VendorDashboard.module.css';
 
 const VendorDashboard = () => {
@@ -266,6 +267,94 @@ const VendorDashboard = () => {
             <div className={`${styles.statCard} ${styles.highlight}`}>
               <h3>Total Revenue</h3>
               <div className={styles.statValue}>${stats.totalRevenue.toFixed(2)}</div>
+            </div>
+          </div>
+
+          {/* Sales Chart */}
+          <div className={styles.chartContainer}>
+            <div className={styles.chartHeader}>
+              <h2>📈 Sales Overview</h2>
+              <span className={styles.chartSubtitle}>Revenue from delivered orders over time</span>
+            </div>
+            <div className={styles.chartWrapper}>
+              {orders.length === 0 ? (
+                <div className={styles.chartEmpty}>
+                  <p>No sales data yet</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart
+                    data={(() => {
+                      // Process orders into daily sales data
+                      const salesByDate = {};
+                      const deliveredOrders = orders.filter(o => o.status === 'delivered');
+                      
+                      // Get last 30 days
+                      const today = new Date();
+                      for (let i = 29; i >= 0; i--) {
+                        const date = new Date(today);
+                        date.setDate(date.getDate() - i);
+                        const dateStr = date.toISOString().split('T')[0];
+                        salesByDate[dateStr] = { date: dateStr, sales: 0, orders: 0 };
+                      }
+                      
+                      // Fill in actual sales
+                      deliveredOrders.forEach(order => {
+                        const orderDate = new Date(order.placed_at || order.created_at).toISOString().split('T')[0];
+                        if (salesByDate[orderDate]) {
+                          salesByDate[orderDate].sales += parseFloat(order.total || order.total_amount || 0);
+                          salesByDate[orderDate].orders += 1;
+                        }
+                      });
+                      
+                      return Object.values(salesByDate).map(d => ({
+                        ...d,
+                        date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      }));
+                    })()}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="#6b7280"
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis 
+                      stroke="#6b7280"
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `$${value}`}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                      }}
+                      formatter={(value, name) => [
+                        name === 'sales' ? `$${value.toFixed(2)}` : value,
+                        name === 'sales' ? 'Revenue' : 'Orders'
+                      ]}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="sales" 
+                      stroke="#6366f1" 
+                      strokeWidth={2}
+                      fillOpacity={1} 
+                      fill="url(#salesGradient)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 

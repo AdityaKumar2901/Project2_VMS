@@ -98,6 +98,44 @@
   color: white;
 }
 
+/* Sales Chart */
+.chartContainer {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.chartHeader {
+  margin-bottom: 1.5rem;
+}
+
+.chartHeader h2 {
+  font-size: 1.25rem;
+  color: #1a1a2e;
+  margin: 0 0 0.25rem 0;
+}
+
+.chartSubtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.chartWrapper {
+  width: 100%;
+  min-height: 300px;
+}
+
+.chartEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
 /* Products Section */
 .sectionHeader {
   display: flex;
