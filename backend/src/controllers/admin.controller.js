@@ -315,21 +315,18 @@ const getReviews = asyncHandler(async (req, res) => {
       u.name as reviewer_name,
       u.email as reviewer_email,
       CASE 
-        WHEN r.product_id IS NOT NULL THEN p.name
+        WHEN r.reviewable_type = 'product' THEN p.name
         ELSE NULL
       END as product_name,
       CASE
-        WHEN r.vendor_id IS NOT NULL THEN v.shop_name
+        WHEN r.reviewable_type = 'vendor' THEN v.shop_name
         ELSE NULL
       END as vendor_name,
-      CASE
-        WHEN r.vendor_id IS NOT NULL THEN 'vendor'
-        ELSE 'product'
-      END as review_type
+      r.reviewable_type as review_type
     FROM reviews r
-    INNER JOIN users u ON r.reviewer_user_id = u.id
-    LEFT JOIN products p ON r.product_id = p.id
-    LEFT JOIN vendor_profiles v ON r.vendor_id = v.id
+    INNER JOIN users u ON r.user_id = u.id
+    LEFT JOIN products p ON r.reviewable_type = 'product' AND r.reviewable_id = p.id
+    LEFT JOIN vendor_profiles v ON r.reviewable_type = 'vendor' AND r.reviewable_id = v.user_id
     ORDER BY r.created_at DESC
     LIMIT ? OFFSET ?`,
     [parseInt(limit), offset]

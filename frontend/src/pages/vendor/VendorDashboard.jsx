@@ -392,15 +392,16 @@ const VendorDashboard = () => {
                   </span>
                 </div>
                 <div className={styles.orderFooter}>
-                  <span className={styles.orderTotal}>Total: ${parseFloat(order.total_amount).toFixed(2)}</span>
+                  <span className={styles.orderTotal}>Total: ${parseFloat(order.total || order.total_amount || 0).toFixed(2)}</span>
                   <select 
                     className={styles.statusSelect}
                     value={order.status}
                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
                   >
                     <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="shipped">Shipped</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="packed">Packed</option>
+                    <option value="out_for_delivery">Out for Delivery</option>
                     <option value="delivered">Delivered</option>
                     <option value="cancelled">Cancelled</option>
                   </select>

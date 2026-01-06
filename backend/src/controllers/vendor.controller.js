@@ -160,8 +160,8 @@ const getVendorProducts = asyncHandler(async (req, res) => {
             COUNT(DISTINCT r.id) as review_count
      FROM products p
      INNER JOIN categories c ON p.category_id = c.id
-     LEFT JOIN reviews r ON r.product_id = p.id
-     WHERE p.vendor_id = ?
+     LEFT JOIN reviews r ON r.reviewable_type = 'product' AND r.reviewable_id = p.id
+     WHERE p.vendor_id = ? AND p.active = 1
      GROUP BY p.id
      ORDER BY p.created_at DESC`,
     [vendorId]
@@ -185,10 +185,9 @@ const createProduct = asyncHandler(async (req, res) => {
     description,
     category_id,
     price,
-    currency = 'USD',
     stock_qty = 0,
     image_url,
-    active = true
+    active = 1
   } = req.body;
 
   // Get vendor ID
@@ -220,12 +219,12 @@ const createProduct = asyncHandler(async (req, res) => {
   }
 
   // Create product
-  const result = await dbAll(
+  const result = await dbRun(
     `INSERT INTO products (
       vendor_id, category_id, name, sku, description, price, 
-      currency, stock_qty, image_url, active
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [vendorId, category_id, name, sku, description, price, currency, stock_qty, image_url, active]
+      stock_qty, image_url, active
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [vendorId, category_id, name, sku || '', description || '', price, stock_qty, image_url || '', active ? 1 : 0]
   );
 
   res.status(201).json({
@@ -372,9 +371,9 @@ const deleteProduct = asyncHandler(async (req, res) => {
     });
   }
 
-  // Soft delete by setting active = false
+  // Soft delete by setting active = 0
   await dbRun(
-    'UPDATE products SET active = FALSE WHERE id = ?',
+    'UPDATE products SET active = 0 WHERE id = ?',
     [productId]
   );
 
@@ -408,8 +407,8 @@ const getVendorOrders = asyncHandler(async (req, res) => {
 
   const vendorId = vendors[0].id;
 
-  // Build query
-  let whereClause = 'oi.vendor_id = ?';
+  // Build query - vendor_id is obtained through products table
+  let whereClause = 'p.vendor_id = ?';
   const params = [vendorId];
 
   if (status) {
@@ -426,14 +425,13 @@ const getVendorOrders = asyncHandler(async (req, res) => {
       o.status,
       o.total,
       o.delivery_address,
-      o.delivery_city,
       o.notes,
       o.placed_at,
       u.name as customer_name,
-      u.email as customer_email,
-      SUM(oi.subtotal) as vendor_order_total
+      u.email as customer_email
     FROM orders o
     INNER JOIN order_items oi ON o.id = oi.order_id
+    INNER JOIN products p ON oi.product_id = p.id
     INNER JOIN users u ON o.customer_id = u.id
     WHERE ${whereClause}
     GROUP BY o.id
@@ -493,13 +491,16 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
   const vendorId = vendors[0].id;
 
-  // Verify order has items from this vendor
+  // Verify order has items from this vendor (through products table)
   const orderItems = await dbAll(
-    'SELECT id FROM order_items WHERE order_id = ? AND vendor_id = ?',
+    `SELECT oi.id 
+     FROM order_items oi
+     INNER JOIN products p ON oi.product_id = p.id
+     WHERE oi.order_id = ? AND p.vendor_id = ?`,
     [orderId, vendorId]
   );
 
-  if (!orderItems) {
+  if (!orderItems || orderItems.length === 0) {
     return res.status(404).json({
       success: false,
       message: 'Order not found'
@@ -546,17 +547,15 @@ const getVendorReviews = asyncHandler(async (req, res) => {
       r.*,
       u.name as reviewer_name,
       CASE 
-        WHEN r.product_id IS NOT NULL THEN p.name
+        WHEN r.reviewable_type = 'product' THEN p.name
         ELSE NULL
       END as product_name,
-      CASE
-        WHEN r.vendor_id IS NOT NULL THEN 'vendor'
-        ELSE 'product'
-      END as review_type
+      r.reviewable_type as review_type
     FROM reviews r
-    INNER JOIN users u ON r.reviewer_user_id = u.id
-    LEFT JOIN products p ON r.product_id = p.id
-    WHERE r.vendor_id = ? OR p.vendor_id = ?
+    INNER JOIN users u ON r.user_id = u.id
+    LEFT JOIN products p ON r.reviewable_type = 'product' AND r.reviewable_id = p.id
+    WHERE (r.reviewable_type = 'vendor' AND r.reviewable_id = ?) 
+       OR (r.reviewable_type = 'product' AND p.vendor_id = ?)
     ORDER BY r.created_at DESC`,
     [vendorId, vendorId]
   );
@@ -602,8 +601,11 @@ const replyToReview = asyncHandler(async (req, res) => {
   const reviews = await dbAll(
     `SELECT r.id
      FROM reviews r
-     LEFT JOIN products p ON r.product_id = p.id
-     WHERE r.id = ? AND (r.vendor_id = ? OR p.vendor_id = ?)`,
+     LEFT JOIN products p ON r.reviewable_type = 'product' AND r.reviewable_id = p.id
+     WHERE r.id = ? AND (
+       (r.reviewable_type = 'vendor' AND r.reviewable_id = ?) 
+       OR (r.reviewable_type = 'product' AND p.vendor_id = ?)
+     )`,
     [reviewId, vendorId, vendorId]
   );
 
@@ -616,7 +618,7 @@ const replyToReview = asyncHandler(async (req, res) => {
 
   // Update review with reply
   await dbRun(
-    'UPDATE reviews SET vendor_reply = ?, replied_at = NOW() WHERE id = ?',
+    'UPDATE reviews SET vendor_reply = ?, reply_at = CURRENT_TIMESTAMP WHERE id = ?',
     [reply, reviewId]
   );
 
