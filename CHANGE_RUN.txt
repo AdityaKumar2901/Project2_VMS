@@ -1,0 +1,16 @@
+=== CHANGE LOG ===
+Date: January 8, 2026
+
+1. File: Project2_VMS\backend\src\server.js
+   Line: 26
+   Change: Updated CORS origin configuration to allow both ports 5173 and 5174
+   Before: origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+   After: origin: ['http://localhost:5173', 'http://localhost:5174'],
+   Reason: Fix CORS error when frontend runs on port 5174
+
+2. File: Project2_VMS\backend\.env (NEW FILE)
+   Lines: All
+   Change: Created .env file with required environment variables
+   Content: Added JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, NODE_ENV, PORT, DB_PATH, JWT expiry times, and CORS_ORIGIN
+   Reason: Fix "secretOrPrivateKey must have a value" error - JWT secrets were missing
+
